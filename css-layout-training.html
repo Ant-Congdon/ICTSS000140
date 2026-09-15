@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSS Positioning and Layout — Training Resource</title>
+<style>
+  /* ============================================================
+     GLOBAL SETUP
+     These variables (called "CSS custom properties") let us set a
+     colour once and reuse it everywhere. If you want to change the
+     colour scheme later, you only need to edit the values here.
+     ============================================================ */
+  :root {
+    --ink: #1f2a1a;
+    --paper: #f6f5ef;
+    --accent: #648000;
+    --accent-dark: #4d6200;
+    --box-fill: #a9c46c;
+    --box-border: #4d6200;
+    --content-fill: #a9c46c;
+    --padding-fill: #d9e4b0;
+    --border-fill: #4d6200;
+    --margin-fill: #f0ede0;
+    --ghost-fill: #d9e4b0;
+    --header-fill: #d9e4b0;
+    --sidebar-fill: #a9c46c;
+    --main-fill: #c3d896;
+    --footer-fill: #8fae57;
+    --line: #d8d5c6;
+    --track: #eceadd;
+    --card: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #eae7da;
+      --paper: #1c1f16;
+      --line: #3a3d30;
+      --track: #262a1c;
+      --margin-fill: #262a1c;
+      --ghost-fill: #333824;
+      --header-fill: #33381f;
+      --sidebar-fill: #4d5c2a;
+      --main-fill: #3f4c25;
+      --footer-fill: #4a5e26;
+      --card: #21251a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #eae7da;
+    --paper: #1c1f16;
+    --line: #3a3d30;
+    --track: #262a1c;
+    --margin-fill: #262a1c;
+    --ghost-fill: #333824;
+    --header-fill: #33381f;
+    --sidebar-fill: #4d5c2a;
+    --main-fill: #3f4c25;
+    --footer-fill: #4a5e26;
+    --card: #21251a;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.55;
+  }
+  main {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 20px 100px;
+  }
+  h1, h2, h3 { line-height: 1.25; }
+  h2 {
+    font-size: 1.5rem;
+    margin: 0 0 6px;
+  }
+  .module-number {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    background: var(--track);
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  p { max-width: 68ch; }
+  code {
+    background: var(--track);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+  pre {
+    background: var(--track);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+  pre code { background: none; padding: 0; }
+  .comment { color: var(--accent-dark); opacity: 0.85; }
+
+  /* ---------- Sticky top navigation ----------
+     This nav uses position: sticky - it scrolls normally with the page
+     until it reaches the top of the browser window, then it "sticks"
+     there. It's a real, working example of the position module below. */
+  nav.jumpnav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 16px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  nav.jumpnav a {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: var(--track);
+  }
+  nav.jumpnav a:hover { background: var(--accent); color: #fff; }
+
+  /* ---------- Fixed "back to top" button ----------
+     This uses position: fixed - it's pinned to the browser window and
+     stays in the same spot no matter how far you scroll. Also a live
+     example, not just a diagram. */
+  a.back-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 10px 14px;
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    z-index: 40;
+  }
+
+  header.intro {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 40px 20px 24px;
+    text-align: center;
+  }
+  header.intro h1 {
+    font-size: 2rem;
+    margin: 0 0 10px;
+  }
+  header.intro p {
+    max-width: 60ch;
+    margin: 0 auto 8px;
+    opacity: 0.85;
+  }
+  .howto {
+    background: var(--track);
+    border-radius: 10px;
+    padding: 18px 20px;
+    max-width: 880px;
+    margin: 24px auto 0;
+    font-size: 0.9rem;
+  }
+  .howto h3 { margin: 0 0 8px; font-size: 1rem; }
+  .howto ol { margin: 0; padding-left: 20px; }
+  .howto li { margin-bottom: 4px; }
+
+  section.module {
+    padding: 56px 0 40px;
+    border-bottom: 1px dashed var(--line);
+    scroll-margin-top: 70px; /* stops the sticky nav covering the heading when jumped to */
+  }
+  section.module:last-of-type { border-bottom: none; }
+
+  .try-this {
+    background: var(--track);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    font-size: 0.88rem;
+    margin: 18px 0 26px;
+  }
+  .try-this strong { color: var(--accent-dark); }
+  .try-this ol { margin: 8px 0 0; padding-left: 20px; }
+  .try-this li { margin-bottom: 4px; }
+
+  /* ---------- Shared demo widget shell ----------
+     Every interactive demo below re-uses this same card styling, so the
+     page feels consistent even though each module's controls differ. */
+  .demo-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px;
+    margin-top: 10px;
+  }
+  .demo-layout {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .demo-controls {
+    flex: 1 1 220px;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .demo-controls .control label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    opacity: 0.7;
+  }
+  .demo-controls label span.val {
+    text-transform: none;
+    font-weight: 400;
+    color: var(--accent-dark);
+    font-variant-numeric: tabular-nums;
+  }
+  input[type="range"] { width: 100%; accent-color: var(--accent); }
+  select {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.85rem;
+  }
+  .toggle-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 4px;
+  }
+  .toggle-row button {
+    flex: 1 1 auto;
+    min-width: 70px;
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    padding: 8px 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .toggle-row button.active { background: var(--accent); color: #fff; }
+
+  .demo-stage-wrap { flex: 1 1 380px; min-width: 300px; }
+  .demo-stage {
+    background: var(--track);
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 260px;
+  }
+  .demo-readout {
+    font-size: 0.82rem;
+    background: var(--track);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-top: 14px;
+    line-height: 1.55;
+  }
+  .demo-readout strong { color: var(--accent-dark); }
+  .demo-code {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.72rem;
+    background: var(--track);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .demo-code .prop { color: var(--accent-dark); font-weight: 700; }
+
+  /* ---------- Module 1: Box model layers ---------- */
+  .bm-margin {
+    background: var(--margin-fill);
+    outline: 1px dotted var(--accent-dark);
+    display: inline-block;
+    box-sizing: content-box;
+  }
+  .bm-border { background: var(--border-fill); display: block; box-sizing: content-box; }
+  .bm-padding { background: var(--padding-fill); display: block; box-sizing: content-box; }
+  .bm-content {
+    background: var(--content-fill);
+    display: flex; align-items: center; justify-content: center;
+    color: #263015; font-size: 0.75rem; font-weight: 700; text-align: center;
+    box-sizing: content-box;
+  }
+  .bm-legend { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; font-size: 0.7rem; margin-top: 12px; }
+  .bm-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .bm-swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+  /* ---------- Module 2: display ---------- */
+  .disp-stage { line-height: 1.8; }
+  .disp-text { opacity: 0.55; font-size: 0.82rem; }
+  .disp-box {
+    background: var(--box-fill);
+    border: 2px solid var(--box-border);
+    color: #263015;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-align: center;
+    padding: 8px;
+    margin: 14px 8px;
+  }
+
+  /* ---------- Module 3: position ---------- */
+  .pos-parent {
+    position: relative;
+    background: var(--track);
+    border: 2px dashed var(--accent-dark);
+    border-radius: 10px;
+    height: 240px;
+    overflow: hidden;
+  }
+  .pos-parent-label {
+    position: absolute; top: 6px; left: 8px;
+    font-size: 0.65rem; font-weight: 700; color: var(--accent-dark);
+    opacity: 0.7; text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .pos-filler {
+    display: inline-block;
+    background: var(--ghost-fill);
+    border: 1px dashed var(--line);
+    opacity: 0.7;
+    font-size: 0.7rem;
+    padding: 10px 12px;
+    margin: 38px 10px;
+  }
+  .pos-box {
+    display: inline-block;
+    background: var(--box-fill);
+    border: 2px solid var(--box-border);
+    color: #263015;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-align: center;
+    padding: 10px 14px;
+    margin: 38px 10px;
+  }
+
+  /* ---------- Module 4 & 5: flex / grid cells ---------- */
+  .flex-item, .grid-cell {
+    background: var(--box-fill);
+    border: 2px solid var(--box-border);
+    color: #263015;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-align: center;
+    padding: 12px 8px;
+    border-radius: 4px;
+    min-width: 46px;
+    min-height: 36px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .grid-cell.header { background: var(--header-fill); }
+  .grid-cell.sidebar { background: var(--sidebar-fill); }
+  .grid-cell.main { background: var(--main-fill); }
+  .grid-cell.footer { background: var(--footer-fill); }
+
+  footer.wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+    text-align: center;
+    opacity: 0.75;
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= STICKY NAVIGATION ================= -->
+<nav class="jumpnav">
+  <a href="#box-model">Box Model</a>
+  <a href="#display">Display</a>
+  <a href="#position">Position</a>
+  <a href="#flexbox">Flexbox</a>
+  <a href="#grid">Grid</a>
+</nav>
+
+<!-- ================= INTRO ================= -->
+<header class="intro">
+  <h1>CSS Positioning and Layout</h1>
+  <p>This page walks through six building blocks of CSS layout, in order. Each one builds on the one before it, so work through them from top to bottom the first time.</p>
+</header>
+
+<div class="howto">
+  <h3>How to use this page</h3>
+  <ol>
+    <li>Read the short explanation at the top of each section.</li>
+    <li>Look at the code example. Every line has a comment explaining what it does.</li>
+    <li>Use the interactive demo below the code to test the idea yourself. Change the settings and watch what happens.</li>
+    <li>Follow the "Try this" steps in each section before moving to the next one.</li>
+  </ol>
+</div>
+
+<main>
+
+  <!-- ================= MODULE 1: BOX MODEL ================= -->
+  <section class="module" id="box-model">
+    <span class="module-number">Module 1 of 5</span>
+    <h2>The Box Model</h2>
+    <p>Every element on a web page is a rectangular box. That box is made of four layers, from the inside out: <strong>content</strong>, <strong>padding</strong>, <strong>border</strong>, and <strong>margin</strong>. Understanding these four layers is the base for everything else in CSS layout.</p>
+
+    <pre><code>.box {
+  <span class="comment">/* CONTENT: the size of the box's inner area */</span>
+  width: 200px;
+  height: 100px;
+
+  <span class="comment">/* PADDING: space inside the border, around the content.
+     Padding is the same colour as the box - it just adds room. */</span>
+  padding: 20px;
+
+  <span class="comment">/* BORDER: a visible line between the padding and the margin.
+     Format is: thickness style colour */</span>
+  border: 3px solid #648000;
+
+  <span class="comment">/* MARGIN: space outside the border, between this box
+     and the elements next to it. Margin is always see-through. */</span>
+  margin: 15px;
+
+  <span class="comment">/* box-sizing changes how width/height are worked out.
+     This is the setting that confuses most beginners. */</span>
+  box-sizing: content-box; <span class="comment">/* default: width is CONTENT only,
+     so padding and border are added on TOP, making the box bigger */</span>
+  <span class="comment">/* box-sizing: border-box;  <- width would then be the TOTAL
+     box size (content + padding + border together) */</span>
+}</code></pre>
+
+    <div class="try-this">
+      <strong>Try this:</strong>
+      <ol>
+        <li>Move the padding and border sliders up as high as they go.</li>
+        <li>Switch from <code>content-box</code> to <code>border-box</code> and watch the total box size stop growing.</li>
+        <li>Write down, in your own words, what <code>box-sizing</code> controls.</li>
+      </ol>
+    </div>
+
+    <div class="demo-card">
+      <div class="demo-layout">
+        <div class="demo-controls">
+          <div class="control">
+            <label>Content width <span class="val" id="bm-wVal">200px</span></label>
+            <input type="range" id="bm-width" min="80" max="240" value="200">
+          </div>
+          <div class="control">
+            <label>Content height <span class="val" id="bm-hVal">70px</span></label>
+            <input type="range" id="bm-height" min="40" max="140" value="70">
+          </div>
+          <div class="control">
+            <label>Padding <span class="val" id="bm-pVal">20px</span></label>
+            <input type="range" id="bm-padding" min="0" max="46" value="20">
+          </div>
+          <div class="control">
+            <label>Border <span class="val" id="bm-bVal">6px</span></label>
+            <input type="range" id="bm-border" min="0" max="18" value="6">
+          </div>
+          <div class="control">
+            <label>Margin <span class="val" id="bm-mVal">16px</span></label>
+            <input type="range" id="bm-margin" min="0" max="44" value="16">
+          </div>
+          <div class="control">
+            <label style="margin-bottom:8px;">box-sizing</label>
+            <div class="toggle-row">
+              <button id="bm-btnContent" class="active">content-box</button>
+              <button id="bm-btnBorder">border-box</button>
+            </div>
+          </div>
+        </div>
+        <div class="demo-stage-wrap">
+          <div class="demo-stage" style="display:flex; align-items:center; justify-content:center;">
+            <div class="bm-margin" id="bm-marginLayer">
+              <div class="bm-border" id="bm-borderLayer">
+                <div class="bm-padding" id="bm-paddingLayer">
+                  <div class="bm-content" id="bm-contentLayer">content</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bm-legend">
+            <span><i class="bm-swatch" style="background:var(--content-fill)"></i>content</span>
+            <span><i class="bm-swatch" style="background:var(--padding-fill)"></i>padding</span>
+            <span><i class="bm-swatch" style="background:var(--border-fill)"></i>border</span>
+            <span><i class="bm-swatch" style="background:var(--margin-fill);outline:1px dotted var(--accent-dark)"></i>margin</span>
+          </div>
+          <div class="demo-readout" id="bm-readout"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MODULE 2: DISPLAY ================= -->
+  <section class="module" id="display">
+    <span class="module-number">Module 2 of 5</span>
+    <h2>The display Property</h2>
+    <p><code>display</code> controls how an element behaves in the page: whether it starts on its own line, whether it accepts a width and height, and how it sits next to other elements.</p>
+
+    <pre><code><span class="comment">/* BLOCK: starts a new line, stretches to fill the parent's width,
+   and accepts width/height/margin on all sides.
+   Default for: div, p, h1, section */</span>
+.block-example { display: block; width: 150px; height: 60px; }
+
+<span class="comment">/* INLINE: flows inside a line of text, only as wide as its content.
+   Default for: span, a, strong */</span>
+.inline-example {
+  display: inline;
+  width: 150px;   <span class="comment">/* IGNORED by the browser */</span>
+  height: 60px;    <span class="comment">/* IGNORED by the browser */</span>
+}
+
+<span class="comment">/* INLINE-BLOCK: sits in a line like inline, but respects
+   width/height/margin like block. The best of both. */</span>
+.inline-block-example { display: inline-block; width: 150px; height: 60px; }</code></pre>
+
+    <div class="try-this">
+      <strong>Try this:</strong>
+      <ol>
+        <li>Switch to <code>inline</code> and notice the width/height stop having any effect.</li>
+        <li>Switch to <code>inline-block</code> and see the width/height come back, while boxes still sit side by side.</li>
+      </ol>
+    </div>
+
+    <div class="demo-card">
+      <div class="toggle-row" style="margin-bottom:16px;">
+        <button id="disp-btnBlock" class="active">block</button>
+        <button id="disp-btnInline">inline</button>
+        <button id="disp-btnInlineBlock">inline-block</button>
+      </div>
+      <div class="demo-stage disp-stage">
+        <span class="disp-text">Some text before —</span>
+        <span class="disp-box" id="disp-box1">Box One</span><span class="disp-box" id="disp-box2">Box Two</span><span class="disp-box" id="disp-box3">Box Three</span>
+        <span class="disp-text">— and text after, to show how the boxes sit with surrounding content.</span>
+      </div>
+      <div class="demo-readout" id="disp-readout"></div>
+    </div>
+  </section>
+
+  <!-- ================= MODULE 3: POSITION ================= -->
+  <section class="module" id="position">
+    <span class="module-number">Module 3 of 5</span>
+    <h2>The position Property</h2>
+    <p><code>position</code> changes what an element is measured from, and whether it stays in the normal flow of the page. There are five values: <code>static</code>, <code>relative</code>, <code>absolute</code>, <code>fixed</code>, and <code>sticky</code>.</p>
+
+    <pre><code><span class="comment">/* STATIC: the default. Sits in normal flow. top/left/right/bottom do nothing. */</span>
+.static-example { position: static; }
+
+<span class="comment">/* RELATIVE: stays in normal flow, but can be nudged from where it
+   WOULD normally sit. The empty space it leaves behind does not close up. */</span>
+.relative-example { position: relative; top: 15px; left: 20px; }
+
+<span class="comment">/* ABSOLUTE: removed from flow completely. Positioned against the
+   nearest ANCESTOR that has position set to anything but static.
+   If no ancestor qualifies, it positions against the whole page. */</span>
+.parent { position: relative; } <span class="comment">/* this makes .parent the anchor */</span>
+.absolute-example { position: absolute; top: 10px; right: 10px; }
+
+<span class="comment">/* FIXED: removed from flow, positioned against the BROWSER WINDOW,
+   and stays there even when the page scrolls. */</span>
+.fixed-example { position: fixed; bottom: 20px; right: 20px; }
+
+<span class="comment">/* STICKY: acts like relative until a scroll threshold is reached,
+   then sticks like fixed, within its parent container. */</span>
+.sticky-example { position: sticky; top: 0; }</code></pre>
+
+    <div class="try-this">
+      <strong>Try this:</strong>
+      <ol>
+        <li>Click through all five buttons below.</li>
+        <li>Each time, check whether Box Three moves to fill the gap left by Box Two - that tells you if Box Two is still in normal flow.</li>
+        <li>Notice this whole page's top menu uses <code>position: sticky</code>, and the round button in the corner of your screen uses <code>position: fixed</code> - scroll up and down to see both in action.</li>
+      </ol>
+    </div>
+
+    <div class="demo-card">
+      <div class="toggle-row" style="margin-bottom:16px;">
+        <button id="pos-btnStatic" class="active">static</button>
+        <button id="pos-btnRelative">relative</button>
+        <button id="pos-btnAbsolute">absolute</button>
+        <button id="pos-btnFixed">fixed</button>
+        <button id="pos-btnSticky">sticky</button>
+      </div>
+      <div class="pos-parent" id="pos-parentBox">
+        <span class="pos-parent-label">parent (position: relative)</span>
+        <span class="pos-filler">Box One (filler)</span><span class="pos-box" id="pos-target">Box Two</span><span class="pos-filler">Box Three (filler)</span>
+      </div>
+      <div class="demo-readout" id="pos-readout"></div>
+    </div>
+  </section>
+
+  <!-- ================= MODULE 4: FLEXBOX ================= -->
+  <section class="module" id="flexbox">
+    <span class="module-number">Module 4 of 5</span>
+    <h2>Flexbox</h2>
+    <p>Flexbox arranges items in a single row or column, and shares out space between them without manual pixel maths. It has properties for the container (the parent) and properties for the items (the children).</p>
+
+    <pre><code>.flex-container {
+  display: flex;   <span class="comment">/* turns on flexbox for direct children */</span>
+
+  <span class="comment">/* which direction items flow along */</span>
+  flex-direction: row;   <span class="comment">/* or: row-reverse, column, column-reverse */</span>
+
+  <span class="comment">/* spacing along the MAIN axis (the direction set above) */</span>
+  justify-content: flex-start;  <span class="comment">/* or: center, space-between, space-around */</span>
+
+  <span class="comment">/* alignment on the CROSS axis (perpendicular to the main axis) */</span>
+  align-items: stretch;   <span class="comment">/* or: center, flex-start, flex-end */</span>
+
+  flex-wrap: nowrap;   <span class="comment">/* or: wrap, to let items drop to a new line */</span>
+  gap: 12px;    <span class="comment">/* spacing between items */</span>
+}
+
+.flex-item {
+  <span class="comment">/* how much this item grows to fill leftover space, compared to others */</span>
+  flex-grow: 1;
+}</code></pre>
+
+    <div class="try-this">
+      <strong>Try this:</strong>
+      <ol>
+        <li>Change <code>flex-direction</code> to <code>column</code> and notice justify-content and align-items swap which direction they control.</li>
+        <li>Set <code>justify-content</code> to <code>space-between</code> - this is the most common real-world flexbox pattern.</li>
+        <li>Set Box Two's flex-grow to 3 and watch it eat up the leftover space.</li>
+      </ol>
+    </div>
+
+    <div class="demo-card">
+      <div class="demo-layout">
+        <div class="demo-controls">
+          <div class="control">
+            <label>flex-direction</label>
+            <select id="flex-direction">
+              <option value="row" selected>row</option>
+              <option value="row-reverse">row-reverse</option>
+              <option value="column">column</option>
+              <option value="column-reverse">column-reverse</option>
+            </select>
+          </div>
+          <div class="control">
+            <label>justify-content</label>
+            <select id="flex-justify">
+              <option value="flex-start" selected>flex-start</option>
+              <option value="center">center</option>
+              <option value="flex-end">flex-end</option>
+              <option value="space-between">space-between</option>
+              <option value="space-around">space-around</option>
+              <option value="space-evenly">space-evenly</option>
+            </select>
+          </div>
+          <div class="control">
+            <label>align-items</label>
+            <select id="flex-align">
+              <option value="stretch" selected>stretch</option>
+              <option value="flex-start">flex-start</option>
+              <option value="center">center</option>
+              <option value="flex-end">flex-end</option>
+            </select>
+          </div>
+          <div class="control">
+            <label>flex-wrap</label>
+            <select id="flex-wrap">
+              <option value="nowrap" selected>nowrap</option>
+              <option value="wrap">wrap</option>
+            </select>
+          </div>
+          <div class="control">
+            <label>gap</label>
+            <select id="flex-gap">
+              <option value="0">0px</option>
+              <option value="8" selected>8px</option>
+              <option value="20">20px</option>
+              <option value="40">40px</option>
+            </select>
+          </div>
+          <div class="control">
+            <label>Box Two's flex-grow</label>
+            <select id="flex-grow">
+              <option value="0" selected>0 (default)</option>
+              <option value="1">1</option>
+              <option value="3">3</option>
+            </select>
+          </div>
+        </div>
+        <div class="demo-stage-wrap">
+          <div class="demo-code" id="flex-codeOut"></div>
+          <div class="demo-stage" id="flex-stage">
+            <div class="flex-item">One</div>
+            <div class="flex-item" id="flex-itemTwo">Two</div>
+            <div class="flex-item">Three</div>
+            <div class="flex-item">Four</div>
+            <div class="flex-item">Five</div>
+            <div class="flex-item">Six</div>
+          </div>
+          <div class="demo-readout" id="flex-readout"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MODULE 5: GRID ================= -->
+  <section class="module" id="grid">
+    <span class="module-number">Module 5 of 5</span>
+    <h2>CSS Grid</h2>
+    <p>Grid arranges items in rows and columns together, at the same time. Use it for a whole page layout - header, sidebar, main content, footer - or for anything genuinely two-dimensional, like a photo gallery.</p>
+
+    <pre><code>.grid-container {
+  display: grid;
+  <span class="comment">/* one column per value: 200px fixed, then two equal
+     "fr" (fraction of leftover space) columns */</span>
+  grid-template-columns: 200px 1fr 1fr;
+  grid-template-rows: 80px auto 60px;
+  gap: 16px;
+}
+
+.sidebar {
+  <span class="comment">/* grid lines are numbered from 1. This spans row lines 1 to 3,
+     meaning it covers rows 1 AND 2. */</span>
+  grid-row: 1 / 3;
+}
+.header {
+  <span class="comment">/* spans column lines 2 to 4, meaning columns 2 AND 3 */</span>
+  grid-column: 2 / 4;
+}
+
+<span class="comment">/* A responsive grid with no media queries needed: */</span>
+.auto-responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}</code></pre>
+
+    <div class="try-this">
+      <strong>Try this:</strong>
+      <ol>
+        <li>Switch the sidebar from Left to Right and notice only the sidebar/main column numbers swap.</li>
+        <li>Compare sidebar width <code>1fr</code> against a fixed <code>160px</code>.</li>
+        <li>Write one sentence explaining, in your own words, the difference between Flexbox and Grid.</li>
+      </ol>
+    </div>
+
+    <div class="demo-card">
+      <div class="demo-layout">
+        <div class="demo-controls">
+          <div class="control">
+            <label>Sidebar position</label>
+            <select id="grid-sidebarPos">
+              <option value="left" selected>Left</option>
+              <option value="right">Right</option>
+              <option value="none">No sidebar</option>
+            </select>
+          </div>
+          <div class="control">
+            <label>Sidebar width</label>
+            <select id="grid-sidebarWidth">
+              <option value="160px">160px (fixed)</option>
+              <option value="1fr" selected>1fr (proportional)</option>
+              <option value="220px">220px (fixed)</option>
+            </select>
+          </div>
+          <div class="control">
+            <label>Main content (fr)</label>
+            <select id="grid-mainFr">
+              <option value="2">2fr</option>
+              <option value="3" selected>3fr</option>
+              <option value="4">4fr</option>
+            </select>
+          </div>
+          <div class="control">
+            <label>gap</label>
+            <select id="grid-gap">
+              <option value="0">0px</option>
+              <option value="10">10px</option>
+              <option value="16" selected>16px</option>
+              <option value="28">28px</option>
+            </select>
+          </div>
+        </div>
+        <div class="demo-stage-wrap">
+          <div class="demo-code" id="grid-codeOut"></div>
+          <div class="demo-stage" id="grid-stage" style="min-height:300px;">
+            <div class="grid-cell header" id="grid-cellHeader">Header</div>
+            <div class="grid-cell sidebar" id="grid-cellSidebar">Sidebar</div>
+            <div class="grid-cell main" id="grid-cellMain">Main Content</div>
+            <div class="grid-cell footer" id="grid-cellFooter">Footer</div>
+          </div>
+          <div class="demo-readout" id="grid-readout"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <p>You've covered normal flow, the box model, display, position, Flexbox, and Grid. These six ideas are the base for almost everything else in CSS layout.</p>
+  <p style="margin-top:18px; font-size:0.78rem; opacity:0.65;">Designed and developed by South Regional TAFE, with coding assistance provided by Claude.</p>
+</footer>
+
+<a href="#top" class="back-to-top" id="topAnchorLink">↑ Top (position: fixed)</a>
+<div id="top"></div>
+
+<script>
+  /* ============================================================
+     MODULE 1: BOX MODEL SCRIPT
+     Reads the five sliders and the box-sizing toggle, then resizes
+     the four nested layers (margin, border, padding, content) to
+     match. Prefixed "bm-" so its IDs never clash with other modules
+     on this same page.
+     ============================================================ */
+  (function boxModelModule() {
+    const widthEl   = document.getElementById('bm-width');
+    const heightEl  = document.getElementById('bm-height');
+    const paddingEl = document.getElementById('bm-padding');
+    const borderEl  = document.getElementById('bm-border');
+    const marginEl  = document.getElementById('bm-margin');
+    const btnContent = document.getElementById('bm-btnContent');
+    const btnBorder  = document.getElementById('bm-btnBorder');
+    const marginLayer  = document.getElementById('bm-marginLayer');
+    const borderLayer  = document.getElementById('bm-borderLayer');
+    const paddingLayer = document.getElementById('bm-paddingLayer');
+    const contentLayer = document.getElementById('bm-contentLayer');
+    const readout = document.getElementById('bm-readout');
+
+    let sizingMode = 'content-box';
+
+    function render() {
+      const w = Number(widthEl.value);
+      const h = Number(heightEl.value);
+      const pad = Number(paddingEl.value);
+      const bor = Number(borderEl.value);
+      const mar = Number(marginEl.value);
+
+      document.getElementById('bm-wVal').textContent = w + 'px';
+      document.getElementById('bm-hVal').textContent = h + 'px';
+      document.getElementById('bm-pVal').textContent = pad + 'px';
+      document.getElementById('bm-bVal').textContent = bor + 'px';
+      document.getElementById('bm-mVal').textContent = mar + 'px';
+
+      marginLayer.style.padding = mar + 'px';
+
+      let contentW, contentH, totalW, totalH;
+      if (sizingMode === 'content-box') {
+        contentW = w; contentH = h;
+        totalW = w + pad * 2 + bor * 2;
+        totalH = h + pad * 2 + bor * 2;
+      } else {
+        totalW = w; totalH = h;
+        contentW = Math.max(0, w - pad * 2 - bor * 2);
+        contentH = Math.max(0, h - pad * 2 - bor * 2);
+      }
+
+      borderLayer.style.borderStyle = 'solid';
+      borderLayer.style.borderWidth = bor + 'px';
+      borderLayer.style.borderColor = 'var(--border-fill)';
+      borderLayer.style.width = (contentW + pad * 2) + 'px';
+      borderLayer.style.height = (contentH + pad * 2) + 'px';
+
+      paddingLayer.style.padding = pad + 'px';
+      paddingLayer.style.width = contentW + 'px';
+      paddingLayer.style.height = contentH + 'px';
+
+      contentLayer.style.width = contentW + 'px';
+      contentLayer.style.height = contentH + 'px';
+
+      readout.innerHTML =
+        `Total rendered box: <strong>${totalW + mar*2}px × ${totalH + mar*2}px</strong> (including margin)<br>` +
+        `Border box: ${totalW}px × ${totalH}px &nbsp;|&nbsp; Content area: ${contentW}px × ${contentH}px`;
+    }
+
+    [widthEl, heightEl, paddingEl, borderEl, marginEl].forEach(el => el.addEventListener('input', render));
+    btnContent.addEventListener('click', () => { sizingMode = 'content-box'; btnContent.classList.add('active'); btnBorder.classList.remove('active'); render(); });
+    btnBorder.addEventListener('click', () => { sizingMode = 'border-box'; btnBorder.classList.add('active'); btnContent.classList.remove('active'); render(); });
+
+    render();
+  })();
+
+  /* ============================================================
+     MODULE 2: DISPLAY SCRIPT
+     Applies the same width/height/margin attempt to three boxes
+     under whichever display mode is selected, so students can see
+     which properties the browser actually honours in each mode.
+     ============================================================ */
+  (function displayModule() {
+    const boxes = [
+      document.getElementById('disp-box1'),
+      document.getElementById('disp-box2'),
+      document.getElementById('disp-box3')
+    ];
+    const buttons = {
+      block: document.getElementById('disp-btnBlock'),
+      inline: document.getElementById('disp-btnInline'),
+      'inline-block': document.getElementById('disp-btnInlineBlock')
+    };
+    const readout = document.getElementById('disp-readout');
+
+    function applyDisplay(mode) {
+      boxes.forEach(box => {
+        box.style.display = mode;
+        box.style.width = '100px';
+        box.style.height = '46px';
+      });
+      Object.entries(buttons).forEach(([key, btn]) => btn.classList.toggle('active', key === mode));
+
+      const explanations = {
+        block: `<strong>display: block</strong> — each box takes the full line and stacks vertically, even though we only set width:100px. Width, height and margin all work as set.`,
+        inline: `<strong>display: inline</strong> — the boxes flow inside the sentence like words. Width and height are <strong>ignored completely</strong>. Left/right margin works, but top/bottom margin is ignored.`,
+        'inline-block': `<strong>display: inline-block</strong> — boxes sit side by side like inline, but width, height and all four margins are honoured like block.`
+      };
+      readout.innerHTML = explanations[mode];
+    }
+
+    buttons.block.addEventListener('click', () => applyDisplay('block'));
+    buttons.inline.addEventListener('click', () => applyDisplay('inline'));
+    buttons['inline-block'].addEventListener('click', () => applyDisplay('inline-block'));
+
+    applyDisplay('block');
+  })();
+
+  /* ============================================================
+     MODULE 3: POSITION SCRIPT
+     Applies one of the five position values to "Box Two" and resets
+     any leftover top/left/right/bottom values from the previous mode
+     first, so old settings never linger and cause confusion.
+     ============================================================ */
+  (function positionModule() {
+    const target = document.getElementById('pos-target');
+    const readout = document.getElementById('pos-readout');
+    const buttons = {
+      static: document.getElementById('pos-btnStatic'),
+      relative: document.getElementById('pos-btnRelative'),
+      absolute: document.getElementById('pos-btnAbsolute'),
+      fixed: document.getElementById('pos-btnFixed'),
+      sticky: document.getElementById('pos-btnSticky')
+    };
+
+    function resetTarget() {
+      target.style.position = '';
+      target.style.top = '';
+      target.style.left = '';
+      target.style.right = '';
+      target.style.bottom = '';
+    }
+
+    function applyMode(mode) {
+      resetTarget();
+      target.style.position = mode;
+
+      const explanations = {
+        static: `<strong>static</strong> — Box Two sits exactly where normal flow puts it.`,
+        relative: `<strong>relative</strong> — Box Two is nudged down and right from where it would normally sit. It still takes up its original space - Box Three doesn't move to fill the gap.`,
+        absolute: `<strong>absolute</strong> — Box Two is pulled out of the flow. Box One and Box Three collapse together. Box Two is now pinned to the top-right corner of the gold-dashed PARENT, because that parent has position: relative set.`,
+        fixed: `<strong>fixed</strong> — Box Two is pinned to the bottom-right of the whole browser window. Scroll the page - it won't move (just like the round button in the corner of your screen).`,
+        sticky: `<strong>sticky</strong> — behaves like static/relative until it would scroll above the top of its container, then it sticks in place - just like the menu bar at the top of this page.`
+      };
+
+      if (mode === 'relative') { target.style.top = '18px'; target.style.left = '14px'; }
+      else if (mode === 'absolute') { target.style.top = '10px'; target.style.right = '10px'; }
+      else if (mode === 'fixed') { target.style.bottom = '80px'; target.style.right = '20px'; }
+      else if (mode === 'sticky') { target.style.top = '0px'; }
+
+      Object.entries(buttons).forEach(([key, btn]) => btn.classList.toggle('active', key === mode));
+      readout.innerHTML = explanations[mode];
+    }
+
+    buttons.static.addEventListener('click', () => applyMode('static'));
+    buttons.relative.addEventListener('click', () => applyMode('relative'));
+    buttons.absolute.addEventListener('click', () => applyMode('absolute'));
+    buttons.fixed.addEventListener('click', () => applyMode('fixed'));
+    buttons.sticky.addEventListener('click', () => applyMode('sticky'));
+
+    applyMode('static');
+  })();
+
+  /* ============================================================
+     MODULE 4: FLEXBOX SCRIPT
+     Reads all five container dropdowns plus one item-level dropdown
+     (Box Two's flex-grow), applies them live to the stage, and prints
+     the equivalent CSS so students can always map the visual result
+     back to real code.
+     ============================================================ */
+  (function flexboxModule() {
+    const stage = document.getElementById('flex-stage');
+    const itemTwo = document.getElementById('flex-itemTwo');
+    const codeOut = document.getElementById('flex-codeOut');
+    const readout = document.getElementById('flex-readout');
+
+    const directionEl = document.getElementById('flex-direction');
+    const justifyEl = document.getElementById('flex-justify');
+    const alignEl = document.getElementById('flex-align');
+    const wrapEl = document.getElementById('flex-wrap');
+    const gapEl = document.getElementById('flex-gap');
+    const growEl = document.getElementById('flex-grow');
+
+    stage.style.display = 'flex';
+
+    function render() {
+      const direction = directionEl.value;
+      const justify = justifyEl.value;
+      const align = alignEl.value;
+      const wrap = wrapEl.value;
+      const gap = gapEl.value;
+      const grow = growEl.value;
+
+      stage.style.flexDirection = direction;
+      stage.style.justifyContent = justify;
+      stage.style.alignItems = align;
+      stage.style.flexWrap = wrap;
+      stage.style.gap = gap + 'px';
+      itemTwo.style.flexGrow = grow;
+
+      codeOut.innerHTML =
+`.container {
+  <span class="prop">display</span>: flex;
+  <span class="prop">flex-direction</span>: ${direction};
+  <span class="prop">justify-content</span>: ${justify};
+  <span class="prop">align-items</span>: ${align};
+  <span class="prop">flex-wrap</span>: ${wrap};
+  <span class="prop">gap</span>: ${gap}px;
+}
+#box-two { <span class="prop">flex-grow</span>: ${grow}; }`;
+
+      const mainAxis = (direction === 'row' || direction === 'row-reverse') ? 'horizontal' : 'vertical';
+      const crossAxis = mainAxis === 'horizontal' ? 'vertical' : 'horizontal';
+      readout.innerHTML =
+        `With flex-direction: ${direction}, the main axis is <strong>${mainAxis}</strong> (set by justify-content) ` +
+        `and the cross axis is <strong>${crossAxis}</strong> (set by align-items).` +
+        (grow !== '0' ? ` Box Two's flex-grow: ${grow} means it claims extra leftover space while the other boxes stay their natural size.` : '');
+    }
+
+    [directionEl, justifyEl, alignEl, wrapEl, gapEl, growEl].forEach(el => el.addEventListener('change', render));
+    render();
+  })();
+
+  /* ============================================================
+     MODULE 5: GRID SCRIPT
+     Builds a classic header/sidebar/main/footer page layout. Header
+     and footer always span both grid columns using "1 / 3"; only the
+     sidebar and main content swap column numbers when the sidebar
+     position changes.
+     ============================================================ */
+  (function gridModule() {
+    const stage = document.getElementById('grid-stage');
+    const cellHeader = document.getElementById('grid-cellHeader');
+    const cellSidebar = document.getElementById('grid-cellSidebar');
+    const cellMain = document.getElementById('grid-cellMain');
+    const cellFooter = document.getElementById('grid-cellFooter');
+    const codeOut = document.getElementById('grid-codeOut');
+    const readout = document.getElementById('grid-readout');
+
+    const sidebarPosEl = document.getElementById('grid-sidebarPos');
+    const sidebarWidthEl = document.getElementById('grid-sidebarWidth');
+    const mainFrEl = document.getElementById('grid-mainFr');
+    const gapEl = document.getElementById('grid-gap');
+
+    stage.style.display = 'grid';
+
+    function render() {
+      const sidebarPos = sidebarPosEl.value;
+      const sidebarWidth = sidebarWidthEl.value;
+      const mainFr = mainFrEl.value;
+      const gap = gapEl.value;
+
+      stage.style.gap = gap + 'px';
+
+      let columns, gridCSS, explanation;
+
+      if (sidebarPos === 'none') {
+        columns = '1fr';
+        stage.style.gridTemplateColumns = columns;
+        stage.style.gridTemplateRows = '70px 1fr 60px';
+        cellHeader.style.gridColumn = '1';
+        cellHeader.style.gridRow = '1';
+        cellSidebar.style.display = 'none';
+        cellMain.style.gridColumn = '1';
+        cellMain.style.gridRow = '2';
+        cellFooter.style.gridColumn = '1';
+        cellFooter.style.gridRow = '3';
+
+        gridCSS =
+`.page {
+  <span class="prop">display</span>: grid;
+  <span class="prop">grid-template-columns</span>: ${columns};
+  <span class="prop">grid-template-rows</span>: 70px 1fr 60px;
+  <span class="prop">gap</span>: ${gap}px;
+}`;
+        explanation = `No sidebar column - just three stacked rows.`;
+      } else {
+        cellSidebar.style.display = 'flex';
+        columns = sidebarPos === 'left' ? `${sidebarWidth} ${mainFr}fr` : `${mainFr}fr ${sidebarWidth}`;
+        stage.style.gridTemplateColumns = columns;
+        stage.style.gridTemplateRows = '70px 1fr 60px';
+
+        const sidebarCol = sidebarPos === 'left' ? '1' : '2';
+        const mainCol = sidebarPos === 'left' ? '2' : '1';
+
+        cellHeader.style.gridColumn = '1 / 3';
+        cellHeader.style.gridRow = '1';
+        cellFooter.style.gridColumn = '1 / 3';
+        cellFooter.style.gridRow = '3';
+        cellSidebar.style.gridColumn = sidebarCol;
+        cellSidebar.style.gridRow = '2';
+        cellMain.style.gridColumn = mainCol;
+        cellMain.style.gridRow = '2';
+
+        gridCSS =
+`.page {
+  <span class="prop">display</span>: grid;
+  <span class="prop">grid-template-columns</span>: ${columns};
+  <span class="prop">grid-template-rows</span>: 70px 1fr 60px;
+  <span class="prop">gap</span>: ${gap}px;
+}
+.header, .footer { <span class="prop">grid-column</span>: 1 / 3; }
+.sidebar { <span class="prop">grid-column</span>: ${sidebarCol}; }
+.main    { <span class="prop">grid-column</span>: ${mainCol}; }`;
+        explanation = `Header and footer span both columns with grid-column: 1 / 3. The sidebar is ${sidebarWidth === '1fr' ? 'proportional (1fr)' : 'a fixed ' + sidebarWidth}; main content takes ${mainFr}fr of what's left.`;
+      }
+
+      codeOut.innerHTML = gridCSS;
+      readout.innerHTML = explanation;
+    }
+
+    [sidebarPosEl, sidebarWidthEl, mainFrEl, gapEl].forEach(el => el.addEventListener('change', render));
+    render();
+  })();
+</script>
+</body>
+</html>
