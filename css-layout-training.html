@@ -6,7 +6,6 @@
 <title>CSS Positioning and Layout — Training Resource</title>
 <style>
   /* ============================================================
-     GLOBAL SETUP - ACCESSIBLE COLOUR SYSTEM
 
      1. THEME TOKENS (--paper, --ink, --accent-dark, etc.) change
         between light mode and dark mode - see the two override
@@ -546,6 +545,7 @@
           </div>
         </div>
         <div class="demo-stage-wrap">
+          <div class="demo-code" id="bm-codeOut"></div>
           <div class="demo-stage" style="display:flex; align-items:center; justify-content:center;">
             <div class="bm-margin" id="bm-marginLayer">
               <div class="bm-border" id="bm-borderLayer">
@@ -604,6 +604,7 @@
         <button id="disp-btnInline">inline</button>
         <button id="disp-btnInlineBlock">inline-block</button>
       </div>
+      <div class="demo-code" id="disp-codeOut"></div>
       <div class="demo-stage disp-stage">
         <span class="disp-text">Some text before —</span>
         <span class="disp-box" id="disp-box1">Box One</span><span class="disp-box" id="disp-box2">Box Two</span><span class="disp-box" id="disp-box3">Box Three</span>
@@ -657,6 +658,7 @@
         <button id="pos-btnFixed">fixed</button>
         <button id="pos-btnSticky">sticky</button>
       </div>
+      <div class="demo-code" id="pos-codeOut"></div>
       <div class="pos-parent" id="pos-parentBox">
         <span class="pos-parent-label">parent (position: relative)</span>
         <span class="pos-filler">Box One (filler)</span><span class="pos-box" id="pos-target">Box Two</span><span class="pos-filler">Box Three (filler)</span>
@@ -870,7 +872,7 @@
 
 <footer class="wrap">
   <p>You've covered normal flow, the box model, display, position, Flexbox, and Grid. These six ideas are the base for almost everything else in CSS layout.</p>
-  <p style="margin-top:18px; font-size:0.78rem;">Designed and developed by South Regional TAFE, with assistance provided by Claude.</p>
+  <p style="margin-top:18px; font-size:0.78rem;">Designed and developed by South Regional TAFE, with coding assistance provided by Claude.</p>
 </footer>
 
 <a href="#top" class="back-to-top" id="topAnchorLink">↑ Top (position: fixed)</a>
@@ -892,16 +894,24 @@
     const button = document.getElementById('themeToggle');
     const STORAGE_KEY = 'css-training-theme';
 
+    // Work out which theme to show FIRST, before the student clicks
+    // anything: use their saved choice if one exists, otherwise fall
+    // back to whatever their operating system/browser prefers.
     function getStartingTheme() {
       try {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved === 'light' || saved === 'dark') return saved;
       } catch (err) {
+        // Some browsers block localStorage (e.g. strict privacy modes).
+        // If that happens, we simply skip remembering the choice.
       }
       const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       return systemPrefersDark ? 'dark' : 'light';
     }
 
+    // Applies a theme to the page and updates the button's label and
+    // its aria-pressed state, so screen reader users hear the current
+    // state, not just sighted users seeing the emoji change.
     function applyTheme(theme) {
       root.setAttribute('data-theme', theme);
       button.textContent = theme === 'dark' ? '☀️ Light mode' : '🌙 Dark mode';
@@ -917,6 +927,8 @@
       try {
         localStorage.setItem(STORAGE_KEY, currentTheme);
       } catch (err) {
+        // If storage is blocked, the toggle still works for this visit -
+        // it just won't be remembered on the next visit.
       }
     });
   })();
@@ -941,6 +953,7 @@
     const paddingLayer = document.getElementById('bm-paddingLayer');
     const contentLayer = document.getElementById('bm-contentLayer');
     const readout = document.getElementById('bm-readout');
+    const codeOut = document.getElementById('bm-codeOut');
 
     let sizingMode = 'content-box';
 
@@ -983,6 +996,19 @@
       contentLayer.style.width = contentW + 'px';
       contentLayer.style.height = contentH + 'px';
 
+      // This is the exact CSS a browser would need to reproduce what
+      // the sliders are currently showing - it updates on every drag,
+      // so students can always see code and picture side by side.
+      codeOut.innerHTML =
+`.box {
+  <span class="prop">width</span>: ${w}px;
+  <span class="prop">height</span>: ${h}px;
+  <span class="prop">padding</span>: ${pad}px;
+  <span class="prop">border</span>: ${bor}px solid #4d6200;
+  <span class="prop">margin</span>: ${mar}px;
+  <span class="prop">box-sizing</span>: ${sizingMode};
+}`;
+
       readout.innerHTML =
         `Total rendered box: <strong>${totalW + mar*2}px × ${totalH + mar*2}px</strong> (including margin)<br>` +
         `Border box: ${totalW}px × ${totalH}px &nbsp;|&nbsp; Content area: ${contentW}px × ${contentH}px`;
@@ -1013,6 +1039,7 @@
       'inline-block': document.getElementById('disp-btnInlineBlock')
     };
     const readout = document.getElementById('disp-readout');
+    const codeOut = document.getElementById('disp-codeOut');
 
     function applyDisplay(mode) {
       boxes.forEach(box => {
@@ -1022,10 +1049,21 @@
       });
       Object.entries(buttons).forEach(([key, btn]) => btn.classList.toggle('active', key === mode));
 
+      // The width/height we ATTEMPT to set never change - only the
+      // display mode does. Showing the same three lines every time,
+      // with only "display" changing, makes it obvious that display
+      // is the thing deciding whether width/height actually apply.
+      codeOut.innerHTML =
+`.box {
+  <span class="prop">display</span>: ${mode};
+  width: 100px;
+  height: 46px;
+}`;
+
       const explanations = {
-        block: `<strong>display: block</strong> - each box takes the full line and stacks vertically, even though we only set width:100px. Width, height and margin all work as set.`,
-        inline: `<strong>display: inline</strong> - the boxes flow inside the sentence like words. Width and height are <strong>ignored completely</strong>. Left/right margin works, but top/bottom margin is ignored.`,
-        'inline-block': `<strong>display: inline-block</strong> - boxes sit side by side like inline, but width, height and all four margins are honoured like block.`
+        block: `<strong>display: block</strong> — each box takes the full line and stacks vertically, even though we only set width:100px. Width, height and margin all work as set.`,
+        inline: `<strong>display: inline</strong> — the boxes flow inside the sentence like words. Width and height are <strong>ignored completely</strong>. Left/right margin works, but top/bottom margin is ignored.`,
+        'inline-block': `<strong>display: inline-block</strong> — boxes sit side by side like inline, but width, height and all four margins are honoured like block.`
       };
       readout.innerHTML = explanations[mode];
     }
@@ -1046,6 +1084,7 @@
   (function positionModule() {
     const target = document.getElementById('pos-target');
     const readout = document.getElementById('pos-readout');
+    const codeOut = document.getElementById('pos-codeOut');
     const buttons = {
       static: document.getElementById('pos-btnStatic'),
       relative: document.getElementById('pos-btnRelative'),
@@ -1067,17 +1106,35 @@
       target.style.position = mode;
 
       const explanations = {
-        static: `<strong>static</strong> - Box Two sits where normal flow puts it.`,
-        relative: `<strong>relative</strong> - Box Two is nudged down and right from where it would normally sit. It still takes up its original space - Box Three doesn't move to fill the gap.`,
-        absolute: `<strong>absolute</strong> - Box Two is pulled out of the flow. Box One and Box Three collapse together. Box Two is now pinned to the top-right corner of the gold-dashed PARENT, because that parent has position: relative set.`,
-        fixed: `<strong>fixed</strong> - Box Two is pinned to the bottom-right of the whole browser window. Scroll the page - it won't move (just like the round button in the corner of your screen).`,
-        sticky: `<strong>sticky</strong> - behaves like static/relative until it would scroll above the top of its container, then it sticks in place - just like the menu bar at the top of this page.`
+        static: `<strong>static</strong> — Box Two sits exactly where normal flow puts it.`,
+        relative: `<strong>relative</strong> — Box Two is nudged down and right from where it would normally sit. It still takes up its original space - Box Three doesn't move to fill the gap.`,
+        absolute: `<strong>absolute</strong> — Box Two is pulled out of the flow. Box One and Box Three collapse together. Box Two is now pinned to the top-right corner of the gold-dashed PARENT, because that parent has position: relative set.`,
+        fixed: `<strong>fixed</strong> — Box Two is pinned to the bottom-right of the whole browser window. Scroll the page - it won't move (just like the round button in the corner of your screen).`,
+        sticky: `<strong>sticky</strong> — behaves like static/relative until it would scroll above the top of its container, then it sticks in place - just like the menu bar at the top of this page.`
       };
 
-      if (mode === 'relative') { target.style.top = '18px'; target.style.left = '14px'; }
-      else if (mode === 'absolute') { target.style.top = '10px'; target.style.right = '10px'; }
-      else if (mode === 'fixed') { target.style.bottom = '80px'; target.style.right = '20px'; }
-      else if (mode === 'sticky') { target.style.top = '0px'; }
+      // Only the properties that actually apply to each mode are shown -
+      // e.g. static never shows top/left/right/bottom, because the
+      // browser would ignore them anyway.
+      let offsetLines = '';
+      if (mode === 'relative') {
+        target.style.top = '18px'; target.style.left = '14px';
+        offsetLines = `\n  <span class="prop">top</span>: 18px;\n  <span class="prop">left</span>: 14px;`;
+      } else if (mode === 'absolute') {
+        target.style.top = '10px'; target.style.right = '10px';
+        offsetLines = `\n  <span class="prop">top</span>: 10px;\n  <span class="prop">right</span>: 10px;`;
+      } else if (mode === 'fixed') {
+        target.style.bottom = '80px'; target.style.right = '20px';
+        offsetLines = `\n  <span class="prop">bottom</span>: 80px;\n  <span class="prop">right</span>: 20px;`;
+      } else if (mode === 'sticky') {
+        target.style.top = '0px';
+        offsetLines = `\n  <span class="prop">top</span>: 0px;`;
+      }
+
+      codeOut.innerHTML =
+`#box-two {
+  <span class="prop">position</span>: ${mode};${offsetLines}
+}`;
 
       Object.entries(buttons).forEach(([key, btn]) => btn.classList.toggle('active', key === mode));
       readout.innerHTML = explanations[mode];
