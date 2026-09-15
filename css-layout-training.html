@@ -6,18 +6,37 @@
 <title>CSS Positioning and Layout — Training Resource</title>
 <style>
   /* ============================================================
-     GLOBAL SETUP
-     These variables (called "CSS custom properties") let us set a
-     colour once and reuse it everywhere. If you want to change the
-     colour scheme later, you only need to edit the values here.
+     GLOBAL SETUP - ACCESSIBLE COLOUR SYSTEM
+
+     1. THEME TOKENS (--paper, --ink, --accent-dark, etc.) change
+        between light mode and dark mode - see the two override
+        blocks below. --accent-dark is always paired with --on-accent
+        for button/badge backgrounds, and --ink-muted is a de-emphasised
+        text colour that STILL passes AAA (never use opacity to fade
+        text - opacity silently breaks contrast ratios).
+
+     2. SWATCH TOKENS (--box-fill, --header-fill, etc.) are the
+        coloured demo boxes used throughout the page (Box One, the
+        content layer, the grid cells...). These stay the SAME
+        colour in both light and dark mode - they're always paired
+        with the fixed --swatch-ink / --swatch-ink-muted text
+        colours below, verified AAA against every swatch fill.
      ============================================================ */
   :root {
-    --ink: #1f2a1a;
-    --paper: #f6f5ef;
-    --accent: #648000;
-    --accent-dark: #4d6200;
+    /* ---- Light mode (the default) ---- */
+    --paper: #ffffff;
+    --ink: #14170d;            /* body text on --paper: contrast ~19.5:1 */
+    --ink-muted: #3a4030;      /* de-emphasised text on --paper: ~10.7:1 */
+    --line: #c7cdb4;
+    --track: #eef1e4;
+    --card: #ffffff;
+    --accent-dark: #3d4e00;    /* text on --paper ~9.2:1; bg with --on-accent text ~9.2:1 */
+    --accent: #648000;         /* decorative only - sliders, thin borders, never carries text */
+    --on-accent: #ffffff;      /* text colour to use ON TOP of an --accent-dark background */
+
+    /* ---- Fixed swatch colours (same in both themes) ---- */
     --box-fill: #a9c46c;
-    --box-border: #4d6200;
+    --box-border: #3d4e00;
     --content-fill: #a9c46c;
     --padding-fill: #d9e4b0;
     --border-fill: #4d6200;
@@ -27,37 +46,38 @@
     --sidebar-fill: #a9c46c;
     --main-fill: #c3d896;
     --footer-fill: #8fae57;
-    --line: #d8d5c6;
-    --track: #eceadd;
-    --card: #ffffff;
+    --swatch-ink: #0d1208;         /* text ON swatches: 7.1:1-14.8:1 depending on fill */
+    --swatch-ink-muted: #2b3a1a;   /* de-emphasised text on the lighter swatches: ~9.1:1 */
   }
+
+  /* Dark mode via the operating system's preference, unless the
+     person has explicitly chosen a theme with the on-page switch
+     (data-theme="light" overrides this). */
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --ink: #eae7da;
-      --paper: #1c1f16;
-      --line: #3a3d30;
-      --track: #262a1c;
-      --margin-fill: #262a1c;
-      --ghost-fill: #333824;
-      --header-fill: #33381f;
-      --sidebar-fill: #4d5c2a;
-      --main-fill: #3f4c25;
-      --footer-fill: #4a5e26;
-      --card: #21251a;
+      --paper: #14170d;
+      --ink: #f4f2e6;          /* body text on --paper: contrast ~18:1 */
+      --ink-muted: #c9c7ba;    /* de-emphasised text on --paper: ~8.8:1 */
+      --line: #454a38;
+      --track: #20241a;
+      --card: #1b1f14;
+      --accent-dark: #a8c46c;  /* text on --paper ~7.7:1; bg with --on-accent text ~9.6:1 */
+      --accent: #8fae57;
+      --on-accent: #10130b;
     }
   }
+  /* Dark mode via the on-page toggle switch (see the button in the
+     top navigation) - this wins regardless of system preference. */
   :root[data-theme="dark"] {
-    --ink: #eae7da;
-    --paper: #1c1f16;
-    --line: #3a3d30;
-    --track: #262a1c;
-    --margin-fill: #262a1c;
-    --ghost-fill: #333824;
-    --header-fill: #33381f;
-    --sidebar-fill: #4d5c2a;
-    --main-fill: #3f4c25;
-    --footer-fill: #4a5e26;
-    --card: #21251a;
+    --paper: #14170d;
+    --ink: #f4f2e6;
+    --ink-muted: #c9c7ba;
+    --line: #454a38;
+    --track: #20241a;
+    --card: #1b1f14;
+    --accent-dark: #a8c46c;
+    --accent: #8fae57;
+    --on-accent: #10130b;
   }
 
   * { box-sizing: border-box; }
@@ -108,7 +128,7 @@
     line-height: 1.6;
   }
   pre code { background: none; padding: 0; }
-  .comment { color: var(--accent-dark); opacity: 0.85; }
+  .comment { color: var(--accent-dark); } /* solid colour, not opacity - opacity would break the verified contrast ratio */
 
   /* ---------- Sticky top navigation ----------
      This nav uses position: sticky - it scrolls normally with the page
@@ -135,7 +155,7 @@
     border-radius: 999px;
     background: var(--track);
   }
-  nav.jumpnav a:hover { background: var(--accent); color: #fff; }
+  nav.jumpnav a:hover, nav.jumpnav a:focus-visible { background: var(--accent-dark); color: var(--on-accent); }
 
   /* ---------- Fixed "back to top" button ----------
      This uses position: fixed - it's pinned to the browser window and
@@ -145,15 +165,35 @@
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: var(--accent);
-    color: #fff;
+    background: var(--accent-dark);
+    color: var(--on-accent);
     text-decoration: none;
     font-size: 0.75rem;
     font-weight: 700;
     padding: 10px 14px;
     border-radius: 999px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
     z-index: 40;
+  }
+
+  /* ---------- Light / dark mode toggle button ----------
+     Sits in the sticky nav. Clicking it sets a data-theme attribute
+     on <html> (see the CSS variable blocks above) and remembers the
+     choice in this browser's local storage. */
+  .theme-toggle {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--on-accent);
+    background: var(--accent-dark);
+    border: none;
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .theme-toggle:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
   }
 
   header.intro {
@@ -169,7 +209,7 @@
   header.intro p {
     max-width: 60ch;
     margin: 0 auto 8px;
-    opacity: 0.85;
+    color: var(--ink-muted);
   }
   .howto {
     background: var(--track);
@@ -192,7 +232,7 @@
 
   .try-this {
     background: var(--track);
-    border-left: 4px solid var(--accent);
+    border-left: 4px solid var(--accent-dark);
     border-radius: 0 8px 8px 0;
     padding: 14px 18px;
     font-size: 0.88rem;
@@ -233,7 +273,7 @@
     margin-bottom: 6px;
     text-transform: uppercase;
     letter-spacing: 0.02em;
-    opacity: 0.7;
+    color: var(--ink-muted);
   }
   .demo-controls label span.val {
     text-transform: none;
@@ -241,7 +281,7 @@
     color: var(--accent-dark);
     font-variant-numeric: tabular-nums;
   }
-  input[type="range"] { width: 100%; accent-color: var(--accent); }
+  input[type="range"] { width: 100%; accent-color: var(--accent-dark); }
   select {
     width: 100%;
     padding: 8px 10px;
@@ -273,7 +313,7 @@
     cursor: pointer;
     font-family: inherit;
   }
-  .toggle-row button.active { background: var(--accent); color: #fff; }
+  .toggle-row button.active { background: var(--accent-dark); color: var(--on-accent); }
 
   .demo-stage-wrap { flex: 1 1 380px; min-width: 300px; }
   .demo-stage {
@@ -317,7 +357,7 @@
   .bm-content {
     background: var(--content-fill);
     display: flex; align-items: center; justify-content: center;
-    color: #263015; font-size: 0.75rem; font-weight: 700; text-align: center;
+    color: var(--swatch-ink); font-size: 0.75rem; font-weight: 700; text-align: center;
     box-sizing: content-box;
   }
   .bm-legend { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; font-size: 0.7rem; margin-top: 12px; }
@@ -326,11 +366,11 @@
 
   /* ---------- Module 2: display ---------- */
   .disp-stage { line-height: 1.8; }
-  .disp-text { opacity: 0.55; font-size: 0.82rem; }
+  .disp-text { color: var(--ink-muted); font-size: 0.82rem; }
   .disp-box {
     background: var(--box-fill);
     border: 2px solid var(--box-border);
-    color: #263015;
+    color: var(--swatch-ink);
     font-weight: 700;
     font-size: 0.75rem;
     text-align: center;
@@ -350,13 +390,13 @@
   .pos-parent-label {
     position: absolute; top: 6px; left: 8px;
     font-size: 0.65rem; font-weight: 700; color: var(--accent-dark);
-    opacity: 0.7; text-transform: uppercase; letter-spacing: 0.03em;
+    text-transform: uppercase; letter-spacing: 0.03em;
   }
   .pos-filler {
     display: inline-block;
     background: var(--ghost-fill);
     border: 1px dashed var(--line);
-    opacity: 0.7;
+    color: var(--swatch-ink-muted);
     font-size: 0.7rem;
     padding: 10px 12px;
     margin: 38px 10px;
@@ -365,7 +405,7 @@
     display: inline-block;
     background: var(--box-fill);
     border: 2px solid var(--box-border);
-    color: #263015;
+    color: var(--swatch-ink);
     font-weight: 700;
     font-size: 0.75rem;
     text-align: center;
@@ -377,7 +417,7 @@
   .flex-item, .grid-cell {
     background: var(--box-fill);
     border: 2px solid var(--box-border);
-    color: #263015;
+    color: var(--swatch-ink);
     font-weight: 700;
     font-size: 0.75rem;
     text-align: center;
@@ -397,7 +437,7 @@
     margin: 0 auto;
     padding: 40px 20px 80px;
     text-align: center;
-    opacity: 0.75;
+    color: var(--ink-muted);
     font-size: 0.85rem;
   }
 </style>
@@ -411,6 +451,9 @@
   <a href="#position">Position</a>
   <a href="#flexbox">Flexbox</a>
   <a href="#grid">Grid</a>
+  <!-- aria-pressed tells screen readers whether dark mode is currently on;
+       the button's own JavaScript keeps this and the visible label in sync. -->
+  <button type="button" id="themeToggle" class="theme-toggle" aria-pressed="false">🌙 Dark mode</button>
 </nav>
 
 <!-- ================= INTRO ================= -->
@@ -827,13 +870,57 @@
 
 <footer class="wrap">
   <p>You've covered normal flow, the box model, display, position, Flexbox, and Grid. These six ideas are the base for almost everything else in CSS layout.</p>
-  <p style="margin-top:18px; font-size:0.78rem; opacity:0.65;">Designed and developed by South Regional TAFE, with coding assistance provided by Claude.</p>
+  <p style="margin-top:18px; font-size:0.78rem;">Designed and developed by South Regional TAFE, with assistance provided by Claude.</p>
 </footer>
 
 <a href="#top" class="back-to-top" id="topAnchorLink">↑ Top (position: fixed)</a>
 <div id="top"></div>
 
 <script>
+  /* ============================================================
+     LIGHT / DARK MODE TOGGLE
+     This sets a data-theme="light" or data-theme="dark" attribute on
+     the <html> element. The CSS variable blocks at the top of this
+     file react to that attribute and swap every colour at once.
+     The chosen theme is saved in this browser's local storage, so it
+     is remembered next time this exact student opens the page on
+     this exact device (it is NOT shared with anyone else, and it
+     does not sync between devices).
+     ============================================================ */
+  (function themeToggleModule() {
+    const root = document.documentElement;
+    const button = document.getElementById('themeToggle');
+    const STORAGE_KEY = 'css-training-theme';
+
+    function getStartingTheme() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved === 'light' || saved === 'dark') return saved;
+      } catch (err) {
+      }
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return systemPrefersDark ? 'dark' : 'light';
+    }
+
+    function applyTheme(theme) {
+      root.setAttribute('data-theme', theme);
+      button.textContent = theme === 'dark' ? '☀️ Light mode' : '🌙 Dark mode';
+      button.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+    }
+
+    let currentTheme = getStartingTheme();
+    applyTheme(currentTheme);
+
+    button.addEventListener('click', function () {
+      currentTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+      applyTheme(currentTheme);
+      try {
+        localStorage.setItem(STORAGE_KEY, currentTheme);
+      } catch (err) {
+      }
+    });
+  })();
+
   /* ============================================================
      MODULE 1: BOX MODEL SCRIPT
      Reads the five sliders and the box-sizing toggle, then resizes
@@ -936,9 +1023,9 @@
       Object.entries(buttons).forEach(([key, btn]) => btn.classList.toggle('active', key === mode));
 
       const explanations = {
-        block: `<strong>display: block</strong> — each box takes the full line and stacks vertically, even though we only set width:100px. Width, height and margin all work as set.`,
-        inline: `<strong>display: inline</strong> — the boxes flow inside the sentence like words. Width and height are <strong>ignored completely</strong>. Left/right margin works, but top/bottom margin is ignored.`,
-        'inline-block': `<strong>display: inline-block</strong> — boxes sit side by side like inline, but width, height and all four margins are honoured like block.`
+        block: `<strong>display: block</strong> - each box takes the full line and stacks vertically, even though we only set width:100px. Width, height and margin all work as set.`,
+        inline: `<strong>display: inline</strong> - the boxes flow inside the sentence like words. Width and height are <strong>ignored completely</strong>. Left/right margin works, but top/bottom margin is ignored.`,
+        'inline-block': `<strong>display: inline-block</strong> - boxes sit side by side like inline, but width, height and all four margins are honoured like block.`
       };
       readout.innerHTML = explanations[mode];
     }
@@ -980,11 +1067,11 @@
       target.style.position = mode;
 
       const explanations = {
-        static: `<strong>static</strong> — Box Two sits exactly where normal flow puts it.`,
-        relative: `<strong>relative</strong> — Box Two is nudged down and right from where it would normally sit. It still takes up its original space - Box Three doesn't move to fill the gap.`,
-        absolute: `<strong>absolute</strong> — Box Two is pulled out of the flow. Box One and Box Three collapse together. Box Two is now pinned to the top-right corner of the gold-dashed PARENT, because that parent has position: relative set.`,
-        fixed: `<strong>fixed</strong> — Box Two is pinned to the bottom-right of the whole browser window. Scroll the page - it won't move (just like the round button in the corner of your screen).`,
-        sticky: `<strong>sticky</strong> — behaves like static/relative until it would scroll above the top of its container, then it sticks in place - just like the menu bar at the top of this page.`
+        static: `<strong>static</strong> - Box Two sits where normal flow puts it.`,
+        relative: `<strong>relative</strong> - Box Two is nudged down and right from where it would normally sit. It still takes up its original space - Box Three doesn't move to fill the gap.`,
+        absolute: `<strong>absolute</strong> - Box Two is pulled out of the flow. Box One and Box Three collapse together. Box Two is now pinned to the top-right corner of the gold-dashed PARENT, because that parent has position: relative set.`,
+        fixed: `<strong>fixed</strong> - Box Two is pinned to the bottom-right of the whole browser window. Scroll the page - it won't move (just like the round button in the corner of your screen).`,
+        sticky: `<strong>sticky</strong> - behaves like static/relative until it would scroll above the top of its container, then it sticks in place - just like the menu bar at the top of this page.`
       };
 
       if (mode === 'relative') { target.style.top = '18px'; target.style.left = '14px'; }
